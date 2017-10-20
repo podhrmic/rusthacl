@@ -415,6 +415,45 @@ mod tests {
     }
 
 
+    const Q_A: [u8; 32] = [0xbc, 0xc9, 0xa5, 0x89, 0x7, 0x2b, 0x3c, 0x71, 0xbe, 0x86, 0x11, 0x1d,
+                           0x85, 0x31, 0xb9, 0xbb, 0xf4, 0x29, 0x64, 0x9a, 0x7, 0xf1, 0xdb, 0x87,
+                           0x5a, 0xa8, 0xf9, 0x49, 0x75, 0x8e, 0x3a, 0xd8];
+    const P_A: [u8; 32] = [0xbe, 0x7e, 0xcf, 0x70, 0x20, 0x9f, 0x26, 0xe5, 0x2f, 0xa8, 0x89, 0x85,
+                           0x14, 0x3, 0xe1, 0xef, 0x2a, 0x1b, 0x2f, 0xd8, 0xe3, 0x16, 0xd9, 0xa6,
+                           0x2, 0x6c, 0xa5, 0xa6, 0xdd, 0x41, 0xa5, 0x25];
+    const Q_B: [u8; 32] = [0x13, 0x4b, 0x63, 0x9e, 0x68, 0x0, 0x9c, 0x72, 0x8d, 0xb3, 0x64, 0xa0,
+                           0xcd, 0xa3, 0xf3, 0x2f, 0xb5, 0x4d, 0x23, 0x8, 0x7f, 0x33, 0x2c, 0x79,
+                           0x9f, 0xcd, 0x5f, 0x7d, 0x49, 0xa8, 0x25, 0xb5];
+    const P_B: [u8; 32] = [0x6c, 0x62, 0x58, 0xf3, 0x59, 0xb7, 0x94, 0xae, 0xa, 0xdf, 0xb2, 0x16,
+                           0x2b, 0xd6, 0x3e, 0x4a, 0xd9, 0xed, 0xd9, 0xaa, 0xd8, 0xdd, 0x4a, 0x4e,
+                           0xae, 0xe2, 0x96, 0x7f, 0x83, 0x72, 0xf4, 0x85];
+
+    #[test]
+    fn test_asymmetric_keys() {
+        // party A
+        let q_a = vec![0xBC, 0xC9, 0xA5, 0x89, 0x7, 0x2B, 0x3C, 0x71, 0xBE, 0x86, 0x11, 0x1D,
+                       0x85, 0x31, 0xB9, 0xBB, 0xF4, 0x29, 0x64, 0x9A, 0x7, 0xF1, 0xDB, 0x87,
+                       0x5A, 0xA8, 0xF9, 0x49, 0x75, 0x8E, 0x3A, 0xD8];
+        let mut p_a = vec![0; 32];
+        ed25519_secret_to_public(p_a.as_mut_slice(), q_a.as_slice()).unwrap();
+        print_array("q_a", &q_a);
+        assert_eq!(q_a, Q_A);
+        print_array("p_a", &p_a);
+        assert_eq!(p_a, P_A);
+
+        // party B
+        let q_b = vec![0x13, 0x4B, 0x63, 0x9E, 0x68, 0x0, 0x9C, 0x72, 0x8D, 0xB3, 0x64, 0xA0,
+                       0xCD, 0xA3, 0xF3, 0x2F, 0xB5, 0x4D, 0x23, 0x8, 0x7F, 0x33, 0x2C, 0x79,
+                       0x9F, 0xCD, 0x5F, 0x7D, 0x49, 0xA8, 0x25, 0xB5];
+        let mut p_b = vec![0; 32];
+        ed25519_secret_to_public(p_b.as_mut_slice(), q_b.as_slice()).unwrap();
+        print_array("q_b", &q_b);
+        assert_eq!(q_b, Q_B);
+        print_array("p_b", &p_b);
+        assert_eq!(p_b, P_B);
+    }
+
+
     use std::thread;
     use std::sync::mpsc;
     use rand::os::OsRng;
@@ -437,24 +476,27 @@ mod tests {
     }
 
     fn thread_a(tx: mpsc::Sender<Vec<u8>>, rx: mpsc::Receiver<Vec<u8>>) {
+        // preloaded section
         // A
-        // assymetric public key
-        //        let p_a = vec![0x98, 0x99, 0x22, 0xFA, 0x6E, 0x87, 0x2B, 0xC1, 0x45, 0x84, 0x80, 0xAA,
-        //                       0xF8, 0x65, 0xA5, 0xBA, 0xB8, 0x61, 0x85, 0x77, 0xC2, 0xEC, 0x37, 0xF9,
-        //                       0xAF, 0xB3, 0xAE, 0x47, 0x83, 0x2C, 0xA4, 0x44];
         // assymetric secret key
-        let q_a = vec![0xBC, 0xC9, 0xA5, 0x89, 0x7, 0x2B, 0x3C, 0x71, 0xBE, 0x86, 0x11, 0x1D,
-                       0x85, 0x31, 0xB9, 0xBB, 0xF4, 0x29, 0x64, 0x9A, 0x7, 0xF1, 0xDB, 0x87,
-                       0x5A, 0xA8, 0xF9, 0x49, 0x75, 0x8E, 0x3A, 0xD8];
-        let mut p_a = vec![0; 32];
-        ed25519_secret_to_public(p_a.as_mut_slice(), q_a.as_slice()).unwrap();
-        print_array("A p_a", &p_a);
+        let q_a = vec![0xbc, 0xc9, 0xa5, 0x89, 0x7, 0x2b, 0x3c, 0x71, 0xbe, 0x86, 0x11, 0x1d,
+                       0x85, 0x31, 0xb9, 0xbb, 0xf4, 0x29, 0x64, 0x9a, 0x7, 0xf1, 0xdb, 0x87,
+                       0x5a, 0xa8, 0xf9, 0x49, 0x75, 0x8e, 0x3a, 0xd8];
+        //print_array("A q_a", &q_a);
+
+        // assymetric public key
+        let p_a = vec![0xbe, 0x7e, 0xcf, 0x70, 0x20, 0x9f, 0x26, 0xe5, 0x2f, 0xa8, 0x89, 0x85,
+                       0x14, 0x3, 0xe1, 0xef, 0x2a, 0x1b, 0x2f, 0xd8, 0xe3, 0x16, 0xd9, 0xa6, 0x2,
+                       0x6c, 0xa5, 0xa6, 0xdd, 0x41, 0xa5, 0x25];
+        //print_array("A p_a", &p_a);
 
         // B
         // assymetric public key
-        let p_b = vec![0xE4, 0xD5, 0x17, 0x13, 0xEB, 0xF8, 0x82, 0xCC, 0x7A, 0x90, 0x29, 0x14,
-                       0x59, 0xCC, 0x84, 0x7E, 0xA2, 0xD3, 0xE9, 0x5E, 0x9E, 0x4, 0x26, 0x90,
-                       0x83, 0x44, 0xE9, 0x5B, 0xA, 0xB7, 0x14, 0x42];
+        let p_b = vec![0x6c, 0x62, 0x58, 0xf3, 0x59, 0xb7, 0x94, 0xae, 0xa, 0xdf, 0xb2, 0x16,
+                       0x2b, 0xd6, 0x3e, 0x4a, 0xd9, 0xed, 0xd9, 0xaa, 0xd8, 0xdd, 0x4a, 0x4e,
+                       0xae, 0xe2, 0x96, 0x7f, 0x83, 0x72, 0xf4, 0x85];
+        //print_array("A p_b", &p_b);
+        // end of preloaded section
 
         let mut status = StatusA::Uninit;
 
@@ -469,7 +511,7 @@ mod tests {
             let mut basepoint: [u8; 32] = [0; 32];
             basepoint[0] = 9;
 
-            // 1. A generates an ephemeral (random) curve25519 key pair (Pae, Qae)
+            println!(">>>>  1. A generates an ephemeral (random) curve25519 key pair (Pae, Qae)");
             let mut p_ae = vec![0; 32];
             assert_eq!(curve25519_crypto_scalarmult(p_ae.as_mut_slice(),
                                                     q_ae.as_slice(),
@@ -477,7 +519,7 @@ mod tests {
                        Ok(()));
             print_array("A p_ae", &p_ae);
 
-            // 1. and sends Pae.
+            println!("1. and sends Pae.");
             status = StatusA::SendMessage1;
             tx.send(p_ae.clone()).expect("A Couldn't send data");
 
@@ -485,7 +527,7 @@ mod tests {
             let message2 = rx.recv().expect("A Couldn't receive data");
             print_array("A rx message2", &message2); // P_be[32], E(sig) [64],tag[16]
 
-            // 7. A computes the shared secret: z = scalar_multiplication(Qae, Pbe)
+            println!("7. A computes the shared secret: z = scalar_multiplication(Qae, Pbe)");
             let mut p_be = vec![];
             p_be.extend_from_slice(&message2[0..32]);
             let mut z = vec![0; 32];
@@ -495,10 +537,10 @@ mod tests {
                        Ok(()));
             print_array("z", &z);
 
-            // 4. A uses the key derivation function kdf(z,1) to compute Kb || Sb, kdf(z,0) to
-            // compute Ka || Sa, and kdf(z,2) to compute Kclient || Sclient.
-            // kdf(z,partyIdent) = SHA512( 0 || z || partyIdent)
-            // (0 for A, 1 for B and 2 for key material returned to the callee)
+            println!(">>>>  8. A uses the key derivation function kdf(z,1) to compute Kb || Sb, kdf(z,0) to
+            compute Ka || Sa, and kdf(z,2) to compute Kclient || Sclient.
+            kdf(z,partyIdent) = SHA512( 0 || z || partyIdent)
+            (0 for A, 1 for B and 2 for key material returned to the callee)");
 
             // kdf(z,0) to compute Ka || Sa
             let mut ka_sa = vec![0; 64];
@@ -527,7 +569,7 @@ mod tests {
             print_array("A k_c", &kc_sc[0..32]);
             print_array("A s_c", &kc_sc[32..64]);
 
-            // 9. A decrypts the remainder of the message, verifies the signature.
+            println!(">>>>  9. A decrypts the remainder of the message, verifies the signature.");
             let mut plaintext = vec![0; 64];
             let aad = vec![];
             let mac = &message2[96..];
@@ -552,7 +594,7 @@ mod tests {
             assert_eq!(success, true);
             print_array("A decrypted sig", &plaintext);
 
-            // 9. verifies the signature.
+            println!(">>>>  9. verifies the signature.");
             let mut pbe_pae = p_be.clone();
             pbe_pae.append(&mut p_ae.clone());
             print_array("A pbe_pae", &pbe_pae);
@@ -563,41 +605,89 @@ mod tests {
             assert_eq!(success, true);
             println!("A signature verified: {}", success);
 
+            println!(">>>>  10. A computes the ed25519 signature: sig = signQa(Pae || Pbe)");
+            let mut sig = vec![0; 64];
 
+            assert_eq!(ed25519_sign(sig.as_mut_slice(), q_a.as_slice(), pbe_pae.as_slice()),
+                       Ok(()));
+            print_array("A sig", &sig);
 
+            println!(">>>>  11. A computes and sends the message Ekey=Ka,IV=Sa||zero(sig)");
+            let mut mac: Vec<u8> = vec![0; 16];
+            let aad = vec![];
+            let mut ciphertext: Vec<u8> = vec![0; 64];
+            let s_a = &ka_sa[32..64];
+            let nonce = &s_a[0..12];
+
+            let success = match chacha20poly1305_aead_encrypt(ciphertext.as_mut_slice(),
+                                                              mac.as_mut_slice(),
+                                                              &sig,
+                                                              &aad,
+                                                              &ka_sa[0..32],
+                                                              nonce) {
+                Ok(val) => val,
+                Err(msg) => panic!("Error! {}", msg),
+            };
+            assert_eq!(success, true);
+            print_array("A ciphertext", &ciphertext);
+            print_array("A mac", &mac);
+            print_array("A nonce", &nonce);
+
+            let mut message3 = ciphertext.clone();
+            message3.append(&mut mac);
+
+            status = StatusA::SendMessage3;
+            print_array("A message3", &message3);
+            tx.send(message3).expect("A Couldn't send data");
+
+            break;
         }
     }
 
 
 
     fn thread_b(tx: mpsc::Sender<Vec<u8>>, rx: mpsc::Receiver<Vec<u8>>) {
+        // preloaded section
         // B
-//        // assymetric public key
-//        let p_b = vec![0xE4, 0xD5, 0x17, 0x13, 0xEB, 0xF8, 0x82, 0xCC, 0x7A, 0x90, 0x29, 0x14,
-//                       0x59, 0xCC, 0x84, 0x7E, 0xA2, 0xD3, 0xE9, 0x5E, 0x9E, 0x4, 0x26, 0x90,
-//                       0x83, 0x44, 0xE9, 0x5B, 0xA, 0xB7, 0x14, 0x42];
         // assymetric secret key
-        let q_b = vec![0x13, 0x4B, 0x63, 0x9E, 0x68, 0x0, 0x9C, 0x72, 0x8D, 0xB3, 0x64, 0xA0,
-                       0xCD, 0xA3, 0xF3, 0x2F, 0xB5, 0x4D, 0x23, 0x8, 0x7F, 0x33, 0x2C, 0x79,
-                       0x9F, 0xCD, 0x5F, 0x7D, 0x49, 0xA8, 0x25, 0xB5];
-		let mut p_b = vec![0;32];
-		ed25519_secret_to_public(p_b.as_mut_slice(), q_b.as_slice()).unwrap();
-		print_array("A p_b", &p_b);
+        let q_b = vec![0x13, 0x4b, 0x63, 0x9e, 0x68, 0x0, 0x9c, 0x72, 0x8d, 0xb3, 0x64, 0xa0,
+                       0xcd, 0xa3, 0xf3, 0x2f, 0xb5, 0x4d, 0x23, 0x8, 0x7f, 0x33, 0x2c, 0x79,
+                       0x9f, 0xcd, 0x5f, 0x7d, 0x49, 0xa8, 0x25, 0xb5];
+        //print_array("B q_b", &q_b);
 
-        // B
-        // given secrect key, we dont generate anything
-        let q_be = vec![0x5F, 0x47, 0x51, 0xFE, 0x56, 0xF2, 0x63, 0x5D, 0xC6, 0x79, 0x8D, 0x5,
-                        0x4A, 0x9, 0x92, 0x70, 0x21, 0x2C, 0xB2, 0x79, 0x44, 0xD9, 0xF8, 0x26,
-                        0xBB, 0xA, 0xAA, 0xB3, 0xFE, 0xCE, 0x88, 0x74];
+        // assymetric public key
+        let p_b = vec![0x6c, 0x62, 0x58, 0xf3, 0x59, 0xb7, 0x94, 0xae, 0xa, 0xdf, 0xb2, 0x16,
+                       0x2b, 0xd6, 0x3e, 0x4a, 0xd9, 0xed, 0xd9, 0xaa, 0xd8, 0xdd, 0x4a, 0x4e,
+                       0xae, 0xe2, 0x96, 0x7f, 0x83, 0x72, 0xf4, 0x85];
+        //print_array("B p_b", &p_b);
+
+        // A
+        // assymetric public key
+        let p_a = vec![0xbe, 0x7e, 0xcf, 0x70, 0x20, 0x9f, 0x26, 0xe5, 0x2f, 0xa8, 0x89, 0x85,
+                       0x14, 0x3, 0xe1, 0xef, 0x2a, 0x1b, 0x2f, 0xd8, 0xe3, 0x16, 0xd9, 0xa6, 0x2,
+                       0x6c, 0xa5, 0xa6, 0xdd, 0x41, 0xa5, 0x25];
+        //print_array("B p_a", &p_a);
+        // end of preloaded section
+
 
         let mut status = StatusB::Uninit;
 
         loop {
+            status = StatusB::WaitingForMessage1;
+
+            let message1 = rx.recv().expect("Couldn't receive data");
+
+            // generate random
+            let mut q_be = vec![0; 32];
+            let mut rng = OsRng::new().unwrap();
+            rng.fill_bytes(q_be.as_mut_slice());
+            print_array("B q_be", &q_be);
+
             // basepoint
             let mut basepoint: [u8; 32] = [0; 32];
             basepoint[0] = 9;
 
-            // 2. B generates ephemeral curve25519 key pair (Pbe, Qbe).
+            println!(">>>>  2. B generates ephemeral curve25519 key pair (Pbe, Qbe).");
             let mut p_be = vec![0; 32];
             assert_eq!(curve25519_crypto_scalarmult(p_be.as_mut_slice(),
                                                     q_be.as_slice(),
@@ -605,12 +695,10 @@ mod tests {
                        Ok(()));
             print_array("B p_be", &p_be);
 
-            status = StatusB::WaitingForMessage1;
 
-            let message1 = rx.recv().expect("Couldn't receive data");
             let p_ae = message1;
 
-            // 3. B computes the shared secret: z = scalar_multiplication(Qbe, Pae)
+            println!(">>>>  3. B computes the shared secret: z = scalar_multiplication(Qbe, Pae)");
             let mut z = vec![0; 32];
             assert_eq!(curve25519_crypto_scalarmult(z.as_mut_slice(),
                                                     q_be.as_slice(),
@@ -618,10 +706,10 @@ mod tests {
                        Ok(()));
             print_array("B z", &z);
 
-            // 4. B uses the key derivation function kdf(z,1) to compute Kb || Sb, kdf(z,0) to
-            // compute Ka || Sa, and kdf(z,2) to compute Kclient || Sclient.
-            // kdf(z,partyIdent) = SHA512( 0 || z || partyIdent)
-            // (0 for A, 1 for B and 2 for key material returned to the callee)
+            println!(">>>>  4. B uses the key derivation function kdf(z,1) to compute Kb || Sb, kdf(z,0) to
+             compute Ka || Sa, and kdf(z,2) to compute Kclient || Sclient.
+             kdf(z,partyIdent) = SHA512( 0 || z || partyIdent)
+             (0 for A, 1 for B and 2 for key material returned to the callee)");
 
             // kdf(z,0) to compute Ka || Sa
             let mut ka_sa = vec![0; 64];
@@ -650,7 +738,7 @@ mod tests {
             print_array("B k_c", &kc_sc[0..32]);
             print_array("B s_c", &kc_sc[32..64]);
 
-            // 5. B computes the ed25519 signature: sig = signQb(Pbe || Pae)
+            println!(">>>>  5. B computes the ed25519 signature: sig = signQb(Pbe || Pae)");
             let mut sig = vec![0; 64];
             let mut pbe_pae = p_be.clone();
             pbe_pae.append(&mut p_ae.clone());
@@ -660,13 +748,12 @@ mod tests {
                        Ok(()));
             print_array("B sig", &sig);
 
-            // 6. B computes and sends the message Pbe || Ekey=Kb,IV=Sb||zero(sig)
+            println!(">>>>  6. B computes and sends the message Pbe || Ekey=Kb,IV=Sb||zero(sig)");
             let mut mac: Vec<u8> = vec![0; 16];
             let aad = vec![];
             let mut ciphertext: Vec<u8> = vec![0; 64];
             let s_b = &kb_sb[32..64];
             let nonce = &s_b[0..12];
-
 
             let success = match chacha20poly1305_aead_encrypt(ciphertext.as_mut_slice(),
                                                               mac.as_mut_slice(),
@@ -693,6 +780,44 @@ mod tests {
             status = StatusB::WaitingForMEssage3;
             let message3 = rx.recv().expect(" Couldn't receive data");
 
+            print_array("B message3", &message3);
+
+			println!(">>>> 13. decrypts and verifies the signature encrypted with  Ekey=Ka,IV=Sa||zero(sig)");
+            let mut plaintext = vec![0; 64];
+            let aad = vec![];
+            let mac = &message3[64..];
+            let ciphertext = &message3[0..64];
+            let s_a = &ka_sa[32..64];
+            let nonce = &s_a[0..12];
+            print_array("B mac", &mac);
+            print_array("B cipheryext", &ciphertext);
+            print_array("B s_a", &s_a);
+            print_array("B nonce", &nonce);
+
+            let success = match chacha20poly1305_aead_decrypt(plaintext.as_mut_slice(),
+                                                              &mac,
+                                                              &ciphertext,
+                                                              &aad,
+                                                              &ka_sa[0..32],
+                                                              nonce) {
+                Ok(val) => val,
+                Err(msg) => panic!("Error! {}", msg),
+            };
+
+            assert_eq!(success, true);
+            print_array("B decrypted sig", &plaintext);
+
+            println!("9. verifies the signature.");
+            let mut pbe_pae = p_be.clone();
+            pbe_pae.append(&mut p_ae.clone());
+            print_array("B pbe_pae", &pbe_pae);
+            let success = match ed25519_verify(&p_a, &pbe_pae, &plaintext) {
+                Ok(val) => val,
+                Err(msg) => panic!("Error! {}", msg),
+            };
+            assert_eq!(success, true);
+            println!("B signature verified: {}", success);
+            break;
         }
     }
 
