@@ -44,7 +44,7 @@ extern "C" {
 
 #[link(name = "hacl")]
 extern "C" {
-    fn Curve25519_crypto_scalarmult(mypublic: *const u8, secret: *const u8, basepoint: *const u8);
+    fn Hacl_Curve25519_crypto_scalarmult(mypublic: *const u8, secret: *const u8, basepoint: *const u8);
 }
 
 
@@ -66,7 +66,7 @@ extern "C" {
 
 #[link(name = "hacl")]
 extern "C" {
-    fn SHA2_512_hash(hash: *const u8, input: *const u8, input_len: u32);
+    fn Hacl_SHA2_512_hash(hash: *const u8, input: *const u8, input_len: u32);
 }
 
 
@@ -85,7 +85,7 @@ pub fn sha2_512_hash(hash: &mut [u8], input: &[u8]) -> Result<(), String> {
     let input_len = input.len() as u32;
 
     unsafe {
-        SHA2_512_hash(hash.as_ptr(), input.as_ptr(), input_len);
+        Hacl_SHA2_512_hash(hash.as_ptr(), input.as_ptr(), input_len);
     }
 
     return Ok(());
@@ -182,7 +182,7 @@ pub fn curve25519_crypto_scalarmult(public_key: &mut [u8],
     }
 
     unsafe {
-        Curve25519_crypto_scalarmult(public_key.as_ptr(), secret_key.as_ptr(), basepoint.as_ptr());
+        Hacl_Curve25519_crypto_scalarmult(public_key.as_ptr(), secret_key.as_ptr(), basepoint.as_ptr());
     }
 
     return Ok(());
@@ -405,6 +405,30 @@ mod tests {
 
         assert_eq!(ed25519_sign(signature.as_mut_slice(), &KEY, &message),
                    Ok(()));
+    }
+
+    #[test]
+    fn test_ed25519_verify() {
+		let secret_key = [0xab, 0x2d, 0x9e, 0x19, 0xd3, 0xec, 0xe9, 0x1d, 0xdd, 0xdf, 0x9c, 0x99,
+		0x66, 0x15, 0x78, 0x0c, 0x70, 0x0e, 0x86, 0xd1, 0x46, 0xd9, 0x17, 0xbb,
+		0x50, 0xd1, 0xe6, 0xec, 0x98, 0xbf, 0x9e, 0xd4];
+		let mut public_key: [u8;32] = [0;32];
+		assert_eq!(ed25519_secret_to_public(&mut public_key, &secret_key), Ok(()));
+		print_array("secret_key", &secret_key);
+		print_array("public_key", &public_key);
+		let message = [0xb0,0x76,0xd5,0x65,0x3d,0x50,0x48,0x30,0xaf,0x9f,0xa7,0x27,0xb3,0x26,0x4f,
+		0xf7,0xf7,0xb,0x4c,0x6e,0x27,0x52,0x99,0xba,0x25,0x40,0x3d,0x7,0xb,0x49,0xb2,0x41,0x6,0xf,
+		0x8,0x6c,0x4a,0x96,0x9d,0x33,0xcc,0xf0,0x2e,0x50,0xcb,0x9f,0xe3,0x66,0xa5,0x33,0xf7,0x22,
+		0x62,0x6,0x5b,0xc4,0x98,0xb8,0x98,0x6e,0x19,0x82,0x30,0x8];
+
+		let mut signature: [u8;64] = [0;64];
+		assert_eq!(ed25519_sign(&mut signature, &secret_key, &message), Ok(()));
+		print_array("message", &message);
+		print_array("signature", &signature);
+
+		let verify = ed25519_verify(&public_key, &message, &signature);
+		println!("{:?}",verify);
+		assert_eq!(verify, Ok(true));
     }
 
     #[test]

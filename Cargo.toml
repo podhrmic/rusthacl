@@ -1,7 +1,7 @@
 [package]
-name = "rusthacl"
+name = "hacl"
 version = "0.1.0"
-authors = ["Michal Podhradsky <michal.podhradsky@aggiemail.usu.edu>"]
+authors = ["Michal Podhradsky <mpodhradsky@galois.com>"]
 
 [dependencies]
 rand = "0.3"
