@@ -1,5 +1,3 @@
-extern crate gcc;
-
 use std::process::Command;
 
 fn main() {
@@ -16,7 +14,6 @@ fn main() {
         .output()
         .expect("failed to execute process");
 
-	println!("cargo:rustc-link-search=native=hacl-c");
-    println!("cargo:rustc-link-lib=hacl");
-		
+	println!("cargo:rustc-link-search=hacl-c");
+    println!("cargo:rustc-link-lib=hacl");		
 }

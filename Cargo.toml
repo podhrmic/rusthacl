@@ -3,10 +3,6 @@ name = "rusthacl"
 version = "0.1.0"
 authors = ["Michal Podhradsky <mpodhradsky@galois.com>"]
 build = "build.rs"
-#links = "hacl"
 
 [dependencies]
 rand = "0.3"
-
-[build-dependencies]
-gcc = "*"
