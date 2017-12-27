@@ -21,7 +21,14 @@ fn main() {
 
   let out_dir = env::var("OUT_DIR").unwrap();
 
+  let out = Command::new("mv")
+        .arg("hacl-c/libhacl.a")
+        .arg(out_dir + "/.")
+        .output()
+        .expect("failed to execute process");
+  println!("rusthacl mv out: {:?}",out);
+
   println!("rusthacl OUT_DIR = {}", out_dir);		
-	println!("cargo:rustc-link-search=hacl-c");
+	println!("cargo:rustc-link-search={}",out_dir);
   println!("cargo:rustc-link-lib=hacl");		
 }
