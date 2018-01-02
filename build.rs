@@ -9,6 +9,7 @@ fn main() {
         .arg("https://github.com/mitls/hacl-c.git")
         .output()
         .expect("failed to execute process");
+  println!("Rusthacl git: {:?}", _out);
 
   let _out = Command::new("make")
         .arg("-C")
@@ -16,6 +17,7 @@ fn main() {
         .arg("libhacl.a")
         .output()
         .expect("failed to execute process");
+  println!("Rusthacl make: {:?}", _out);
 
   let out_dir = env::var("OUT_DIR").unwrap();
   let _out = Command::new("mv")
@@ -23,8 +25,9 @@ fn main() {
         .arg(out_dir + "/.")
         .output()
         .expect("failed to execute process");
+  println!("Rusthacl mv: {:?}", _out);
 
   let out_dir = env::var("OUT_DIR").unwrap();		
-	println!("cargo:rustc-link-search={}",out_dir);
+  println!("cargo:rustc-link-search={}",out_dir);
   println!("cargo:rustc-link-lib=hacl");		
 }
