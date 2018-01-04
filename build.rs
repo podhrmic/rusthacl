@@ -12,6 +12,7 @@ fn main() {
   println!("Rusthacl git: {:?}", out);
 
   let out = Command::new("make")
+        .env("CC", "gcc")
         .arg("-C")
         .arg("hacl-c")
         .arg("libhacl.a")
