@@ -16,35 +16,41 @@ use std::ptr;
 
 //#[link(name = "hacl")]
 extern "C" {
-    fn Hacl_Chacha20Poly1305_aead_encrypt(c: *const u8,
-                                     mac: *const u8,
-                                     m: *const u8,
-                                     mlen: u32,
-                                     aad1: *const u8,
-                                     aadlen: u32,
-                                     k1: *const u8,
-                                     n1: *const u8)
-                                     -> u32;
+    fn Hacl_Chacha20Poly1305_aead_encrypt(
+        c: *const u8,
+        mac: *const u8,
+        m: *const u8,
+        mlen: u32,
+        aad1: *const u8,
+        aadlen: u32,
+        k1: *const u8,
+        n1: *const u8,
+    ) -> u32;
 }
 
 
 //#[link(name = "hacl")]
 extern "C" {
-    fn Hacl_Chacha20Poly1305_aead_decrypt(m: *const u8,
-                                     c: *const u8,
-                                     mlen: u32,
-                                     mac: *const u8,
-                                     aad1: *const u8,
-                                     aadlen: u32,
-                                     k1: *const u8,
-                                     n1: *const u8)
-                                     -> u32;
+    fn Hacl_Chacha20Poly1305_aead_decrypt(
+        m: *const u8,
+        c: *const u8,
+        mlen: u32,
+        mac: *const u8,
+        aad1: *const u8,
+        aadlen: u32,
+        k1: *const u8,
+        n1: *const u8,
+    ) -> u32;
 }
 
 
 //#[link(name = "hacl")]
 extern "C" {
-    fn Hacl_Curve25519_crypto_scalarmult(mypublic: *const u8, secret: *const u8, basepoint: *const u8);
+    fn Hacl_Curve25519_crypto_scalarmult(
+        mypublic: *const u8,
+        secret: *const u8,
+        basepoint: *const u8,
+    );
 }
 
 
@@ -55,7 +61,12 @@ extern "C" {
 
 //#[link(name = "hacl")]
 extern "C" {
-    fn Hacl_Ed25519_verify(public: *const u8, msg: *const u8, mlen: u32, signature: *const u8) -> bool;
+    fn Hacl_Ed25519_verify(
+        public: *const u8,
+        msg: *const u8,
+        mlen: u32,
+        signature: *const u8,
+    ) -> bool;
 }
 
 //#[link(name = "hacl")]
@@ -112,10 +123,12 @@ pub fn ed25519_sign(signature: &mut [u8], secret_key: &[u8], message: &[u8]) -> 
     let mlen = message.len() as u32;
 
     unsafe {
-        Hacl_Ed25519_sign(signature.as_ptr(),
-                     secret_key.as_ptr(),
-                     message.as_ptr(),
-                     mlen);
+        Hacl_Ed25519_sign(
+            signature.as_ptr(),
+            secret_key.as_ptr(),
+            message.as_ptr(),
+            mlen,
+        );
     }
 
 
@@ -138,10 +151,12 @@ pub fn ed25519_verify(public_key: &[u8], message: &[u8], signature: &[u8]) -> Re
     let mlen = message.len() as u32;
 
     let val = unsafe {
-        Hacl_Ed25519_verify(public_key.as_ptr(),
-                       message.as_ptr(),
-                       mlen,
-                       signature.as_ptr())
+        Hacl_Ed25519_verify(
+            public_key.as_ptr(),
+            message.as_ptr(),
+            mlen,
+            signature.as_ptr(),
+        )
     };
     return Ok(val);
 }
@@ -165,10 +180,11 @@ pub fn ed25519_secret_to_public(public_key: &mut [u8], secret_key: &[u8]) -> Res
 /// mypublic: generated public key, 32 bytes
 /// secret: secret key, 32 bytes
 /// basepoint: initial point, 32 bytes, default is 9
-pub fn curve25519_crypto_scalarmult(public_key: &mut [u8],
-                                    secret_key: &[u8],
-                                    basepoint: &[u8])
-                                    -> Result<(), String> {
+pub fn curve25519_crypto_scalarmult(
+    public_key: &mut [u8],
+    secret_key: &[u8],
+    basepoint: &[u8],
+) -> Result<(), String> {
     if public_key.len() != KEY_LEN {
         return Err(String::from("Public key length error"));
     }
@@ -182,7 +198,11 @@ pub fn curve25519_crypto_scalarmult(public_key: &mut [u8],
     }
 
     unsafe {
-        Hacl_Curve25519_crypto_scalarmult(public_key.as_ptr(), secret_key.as_ptr(), basepoint.as_ptr());
+        Hacl_Curve25519_crypto_scalarmult(
+            public_key.as_ptr(),
+            secret_key.as_ptr(),
+            basepoint.as_ptr(),
+        );
     }
 
     return Ok(());
@@ -196,13 +216,14 @@ pub fn curve25519_crypto_scalarmult(public_key: &mut [u8],
 /// aadlen: length of additional auth data
 /// k1: key, 32 bytes
 /// n1: nonce, 12 bytes
-pub fn chacha20poly1305_aead_decrypt(message: &mut [u8],
-                                     mac: &[u8],
-                                     ciphertext: &[u8],
-                                     aad: &[u8],
-                                     key: &[u8],
-                                     nonce: &[u8])
-                                     -> Result<bool, String> {
+pub fn chacha20poly1305_aead_decrypt(
+    message: &mut [u8],
+    mac: &[u8],
+    ciphertext: &[u8],
+    aad: &[u8],
+    key: &[u8],
+    nonce: &[u8],
+) -> Result<bool, String> {
     if mac.len() != MAC_LEN {
         return Err(String::from("Mac length error"));
     }
@@ -220,7 +241,9 @@ pub fn chacha20poly1305_aead_decrypt(message: &mut [u8],
     }
 
     if ciphertext.len() != message.len() {
-        return Err(String::from("Message and ciphertext have different lengths"));
+        return Err(String::from(
+            "Message and ciphertext have different lengths",
+        ));
     }
 
     let mlen = message.len() as u32;
@@ -234,14 +257,16 @@ pub fn chacha20poly1305_aead_decrypt(message: &mut [u8],
 
 
     let val = unsafe {
-        Hacl_Chacha20Poly1305_aead_decrypt(message.as_ptr(),
-                                      ciphertext.as_ptr(),
-                                      mlen,
-                                      mac.as_ptr(),
-                                      aadptr,
-                                      aadlen,
-                                      key.as_ptr(),
-                                      nonce.as_ptr())
+        Hacl_Chacha20Poly1305_aead_decrypt(
+            message.as_ptr(),
+            ciphertext.as_ptr(),
+            mlen,
+            mac.as_ptr(),
+            aadptr,
+            aadlen,
+            key.as_ptr(),
+            nonce.as_ptr(),
+        )
     };
 
     return match val {
@@ -258,13 +283,14 @@ pub fn chacha20poly1305_aead_decrypt(message: &mut [u8],
 /// aadlen: length of additional auth data
 /// k1: key, 32 bytes
 /// n1: nonce, 12 bytes
-pub fn chacha20poly1305_aead_encrypt(ciphertext: &mut [u8],
-                                     mac: &mut [u8],
-                                     message: &[u8],
-                                     aad: &[u8],
-                                     key: &[u8],
-                                     nonce: &[u8])
-                                     -> Result<bool, String> {
+pub fn chacha20poly1305_aead_encrypt(
+    ciphertext: &mut [u8],
+    mac: &mut [u8],
+    message: &[u8],
+    aad: &[u8],
+    key: &[u8],
+    nonce: &[u8],
+) -> Result<bool, String> {
     if mac.len() != MAC_LEN {
         return Err(String::from("Mac length error"));
     }
@@ -282,7 +308,9 @@ pub fn chacha20poly1305_aead_encrypt(ciphertext: &mut [u8],
     }
 
     if ciphertext.len() != message.len() {
-        return Err(String::from("Message and ciphertext have different lengths"));
+        return Err(String::from(
+            "Message and ciphertext have different lengths",
+        ));
     }
 
     let mlen = message.len() as u32;
@@ -296,14 +324,16 @@ pub fn chacha20poly1305_aead_encrypt(ciphertext: &mut [u8],
 
 
     let val = unsafe {
-        Hacl_Chacha20Poly1305_aead_encrypt(ciphertext.as_ptr(),
-                                      mac.as_ptr(),
-                                      message.as_ptr(),
-                                      mlen,
-                                      aadptr,
-                                      aadlen,
-                                      key.as_ptr(),
-                                      nonce.as_ptr())
+        Hacl_Chacha20Poly1305_aead_encrypt(
+            ciphertext.as_ptr(),
+            mac.as_ptr(),
+            message.as_ptr(),
+            mlen,
+            aadptr,
+            aadlen,
+            key.as_ptr(),
+            nonce.as_ptr(),
+        )
     };
 
     return match val {
@@ -319,7 +349,7 @@ extern crate rand;
 mod tests {
     use super::*;
 
-	#[allow(dead_code)]
+    #[allow(dead_code)]
     fn print_array(name: &str, b: &[u8]) {
         print!("{}[{}]=[", name, b.len());
         for i in b {
@@ -350,12 +380,14 @@ mod tests {
         let message = vec![4, 3];
         let nonce = vec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-        let success = match chacha20poly1305_aead_encrypt(ciphertext.as_mut_slice(),
-                                                          mac.as_mut_slice(),
-                                                          &message,
-                                                          &aad,
-                                                          &key,
-                                                          &nonce) {
+        let success = match chacha20poly1305_aead_encrypt(
+            ciphertext.as_mut_slice(),
+            mac.as_mut_slice(),
+            &message,
+            &aad,
+            &key,
+            &nonce,
+        ) {
             Ok(val) => val,
             Err(msg) => panic!("Error! {}", msg),
         };
@@ -369,12 +401,14 @@ mod tests {
     fn test_chacha20poly1305_aead_decrypt() {
         let mut plaintext = vec![0, 0];
         let aad = vec![];
-        let success = match chacha20poly1305_aead_decrypt(plaintext.as_mut_slice(),
-                                                          &MAC,
-                                                          &CIPHERTEXT,
-                                                          &aad,
-                                                          &KEY,
-                                                          &NONCE) {
+        let success = match chacha20poly1305_aead_decrypt(
+            plaintext.as_mut_slice(),
+            &MAC,
+            &CIPHERTEXT,
+            &aad,
+            &KEY,
+            &NONCE,
+        ) {
             Ok(val) => val,
             Err(msg) => panic!("Error! {}", msg),
         };
@@ -389,8 +423,10 @@ mod tests {
         basepoint[0] = 9;
 
         let mut public_key: [u8; 32] = [0; 32];
-        assert_eq!(curve25519_crypto_scalarmult(&mut public_key, &KEY, &basepoint),
-                   Ok(()));
+        assert_eq!(
+            curve25519_crypto_scalarmult(&mut public_key, &KEY, &basepoint),
+            Ok(())
+        );
     }
 
     #[test]
@@ -400,27 +436,34 @@ mod tests {
                            0x66, 0x91, 0x39, 0xce, 0xe0, 0xd6, 0x85, 0x9e, 0x48, 0xa3, 0xed, 0x3b,
                            0x5b, 0x7c, 0x89, 0xc1, 0x5a, 0x49, 0xf3, 0x7];
 
-        assert_eq!(ed25519_sign(signature.as_mut_slice(), &KEY, &message),
-                   Ok(()));
+        assert_eq!(
+            ed25519_sign(signature.as_mut_slice(), &KEY, &message),
+            Ok(())
+        );
     }
 
     #[test]
     fn test_ed25519_verify() {
-		let secret_key = [0xab, 0x2d, 0x9e, 0x19, 0xd3, 0xec, 0xe9, 0x1d, 0xdd, 0xdf, 0x9c, 0x99,
-		0x66, 0x15, 0x78, 0x0c, 0x70, 0x0e, 0x86, 0xd1, 0x46, 0xd9, 0x17, 0xbb,
-		0x50, 0xd1, 0xe6, 0xec, 0x98, 0xbf, 0x9e, 0xd4];
-		let mut public_key: [u8;32] = [0;32];
-		assert_eq!(ed25519_secret_to_public(&mut public_key, &secret_key), Ok(()));
-		let message = [0xb0,0x76,0xd5,0x65,0x3d,0x50,0x48,0x30,0xaf,0x9f,0xa7,0x27,0xb3,0x26,0x4f,
-		0xf7,0xf7,0xb,0x4c,0x6e,0x27,0x52,0x99,0xba,0x25,0x40,0x3d,0x7,0xb,0x49,0xb2,0x41,0x6,0xf,
-		0x8,0x6c,0x4a,0x96,0x9d,0x33,0xcc,0xf0,0x2e,0x50,0xcb,0x9f,0xe3,0x66,0xa5,0x33,0xf7,0x22,
-		0x62,0x6,0x5b,0xc4,0x98,0xb8,0x98,0x6e,0x19,0x82,0x30,0x8];
+        let secret_key = [0xab, 0x2d, 0x9e, 0x19, 0xd3, 0xec, 0xe9, 0x1d, 0xdd, 0xdf, 0x9c, 0x99,
+                          0x66, 0x15, 0x78, 0x0c, 0x70, 0x0e, 0x86, 0xd1, 0x46, 0xd9, 0x17, 0xbb,
+                          0x50, 0xd1, 0xe6, 0xec, 0x98, 0xbf, 0x9e, 0xd4];
+        let mut public_key: [u8; 32] = [0; 32];
+        assert_eq!(
+            ed25519_secret_to_public(&mut public_key, &secret_key),
+            Ok(())
+        );
+        let message = [0xb0, 0x76, 0xd5, 0x65, 0x3d, 0x50, 0x48, 0x30, 0xaf, 0x9f, 0xa7, 0x27,
+                       0xb3, 0x26, 0x4f, 0xf7, 0xf7, 0xb, 0x4c, 0x6e, 0x27, 0x52, 0x99, 0xba,
+                       0x25, 0x40, 0x3d, 0x7, 0xb, 0x49, 0xb2, 0x41, 0x6, 0xf, 0x8, 0x6c, 0x4a,
+                       0x96, 0x9d, 0x33, 0xcc, 0xf0, 0x2e, 0x50, 0xcb, 0x9f, 0xe3, 0x66, 0xa5,
+                       0x33, 0xf7, 0x22, 0x62, 0x6, 0x5b, 0xc4, 0x98, 0xb8, 0x98, 0x6e, 0x19,
+                       0x82, 0x30, 0x8];
 
-		let mut signature: [u8;64] = [0;64];
-		assert_eq!(ed25519_sign(&mut signature, &secret_key, &message), Ok(()));
+        let mut signature: [u8; 64] = [0; 64];
+        assert_eq!(ed25519_sign(&mut signature, &secret_key, &message), Ok(()));
 
-		let verify = ed25519_verify(&public_key, &message, &signature);
-		assert_eq!(verify, Ok(true));
+        let verify = ed25519_verify(&public_key, &message, &signature);
+        assert_eq!(verify, Ok(true));
     }
 
     #[test]
@@ -428,52 +471,44 @@ mod tests {
         let mut hashed = vec![0; 64];
         assert_eq!(sha2_512_hash(hashed.as_mut_slice(), &KEY), Ok(()));
     }
-    
+
     #[test]
     fn test_shared_secret() {
-    	// A generates an ephemeral (random) curve25519 key pair (Pae, Qae) and sends Pae.
-    	let q_ae = Q_A;
-    	let mut p_ae: [u8;32] = [0; 32];
-    	let mut basepoint: [u8; 32] = [0; 32];
-    	basepoint[0] = 9;
-    	assert_eq!(
+        // A generates an ephemeral (random) curve25519 key pair (Pae, Qae) and sends Pae.
+        let q_ae = Q_A;
+        let mut p_ae: [u8; 32] = [0; 32];
+        let mut basepoint: [u8; 32] = [0; 32];
+        basepoint[0] = 9;
+        assert_eq!(
             curve25519_crypto_scalarmult(&mut p_ae, &q_ae, &basepoint),
             Ok(())
         );
-    	
-    	// B generates ephemeral curve25519 key pair (Pbe, Qbe).
-    	let q_be = Q_B;
-    	let mut p_be: [u8;32] = [0; 32];
-    	assert_eq!(
+
+        // B generates ephemeral curve25519 key pair (Pbe, Qbe).
+        let q_be = Q_B;
+        let mut p_be: [u8; 32] = [0; 32];
+        assert_eq!(
             curve25519_crypto_scalarmult(&mut p_be, &q_be, &basepoint),
             Ok(())
         );
-    	
-    	// B computes the shared secret: z = scalar_multiplication(Qbe, Pae)
-    	let mut zb = vec![0; 32];
+
+        // B computes the shared secret: z = scalar_multiplication(Qbe, Pae)
+        let mut zb = vec![0; 32];
         assert_eq!(
-            curve25519_crypto_scalarmult(
-                zb.as_mut_slice(),
-                &q_be,
-                &p_ae,
-            ),
+            curve25519_crypto_scalarmult(zb.as_mut_slice(), &q_be, &p_ae),
             Ok(())
         );
-        println!(">>>>>>>> B shared secred = {:?}",zb);
-        
-        
+        println!(">>>>>>>> B shared secred = {:?}", zb);
+
+
         // A computes the shared secret: z = scalar_multiplication(Qae, Pbe)
-    	let mut za = vec![0; 32];
+        let mut za = vec![0; 32];
         assert_eq!(
-            curve25519_crypto_scalarmult(
-                za.as_mut_slice(),
-                &q_ae,
-                &p_be,
-            ),
+            curve25519_crypto_scalarmult(za.as_mut_slice(), &q_ae, &p_be),
             Ok(())
         );
-        println!(">>>>>>>> A shared secred = {:?}",za);
-        assert_eq!(za,zb);
+        println!(">>>>>>>> A shared secred = {:?}", za);
+        assert_eq!(za, zb);
     }
 
 
@@ -541,8 +576,8 @@ mod tests {
 
         // assymetric public key
         let _p_a = vec![0xbe, 0x7e, 0xcf, 0x70, 0x20, 0x9f, 0x26, 0xe5, 0x2f, 0xa8, 0x89, 0x85,
-                       0x14, 0x3, 0xe1, 0xef, 0x2a, 0x1b, 0x2f, 0xd8, 0xe3, 0x16, 0xd9, 0xa6, 0x2,
-                       0x6c, 0xa5, 0xa6, 0xdd, 0x41, 0xa5, 0x25];
+                        0x14, 0x3, 0xe1, 0xef, 0x2a, 0x1b, 0x2f, 0xd8, 0xe3, 0x16, 0xd9, 0xa6,
+                        0x2, 0x6c, 0xa5, 0xa6, 0xdd, 0x41, 0xa5, 0x25];
 
         // B
         // assymetric public key
@@ -565,10 +600,10 @@ mod tests {
 
             // println!(">>>>  1. A generates an ephemeral (random) curve25519 key pair (Pae, Qae)");
             let mut p_ae = vec![0; 32];
-            assert_eq!(curve25519_crypto_scalarmult(p_ae.as_mut_slice(),
-                                                    q_ae.as_slice(),
-                                                    &basepoint),
-                       Ok(()));
+            assert_eq!(
+                curve25519_crypto_scalarmult(p_ae.as_mut_slice(), q_ae.as_slice(), &basepoint),
+                Ok(())
+            );
 
             // println!("1. and sends Pae.");
             _status = StatusA::SendMessage1;
@@ -581,10 +616,10 @@ mod tests {
             let mut p_be = vec![];
             p_be.extend_from_slice(&message2[0..32]);
             let mut z = vec![0; 32];
-            assert_eq!(curve25519_crypto_scalarmult(z.as_mut_slice(),
-                                                    q_ae.as_slice(),
-                                                    p_be.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                curve25519_crypto_scalarmult(z.as_mut_slice(), q_ae.as_slice(), p_be.as_slice()),
+                Ok(())
+            );
 
             // println!(">>>>  8. A uses the key derivation function kdf(z,1) to compute Kb || Sb, kdf(z,0) to
             // compute Ka || Sa, and kdf(z,2) to compute Kclient || Sclient.
@@ -595,22 +630,28 @@ mod tests {
             let mut ka_sa = vec![0; 64];
             let mut input = z.clone();
             input.push(0);
-            assert_eq!(sha2_512_hash(ka_sa.as_mut_slice(), input.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                sha2_512_hash(ka_sa.as_mut_slice(), input.as_slice()),
+                Ok(())
+            );
 
             // kdf(z,1) to compute Kb || Sb
             let mut kb_sb = vec![0; 64];
             let mut input = z.clone();
             input.push(1);
-            assert_eq!(sha2_512_hash(kb_sb.as_mut_slice(), input.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                sha2_512_hash(kb_sb.as_mut_slice(), input.as_slice()),
+                Ok(())
+            );
 
             // kdf(z,2) to compute Kclient || Sclient
             let mut kc_sc = vec![0; 64];
             let mut input = z.clone();
             input.push(2);
-            assert_eq!(sha2_512_hash(kc_sc.as_mut_slice(), input.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                sha2_512_hash(kc_sc.as_mut_slice(), input.as_slice()),
+                Ok(())
+            );
 
             // println!(">>>>  9. A decrypts the remainder of the message, verifies the signature.");
             let mut plaintext = vec![0; 64];
@@ -620,12 +661,14 @@ mod tests {
             let s_b = &kb_sb[32..64];
             let nonce = &s_b[0..12];
 
-            let success = match chacha20poly1305_aead_decrypt(plaintext.as_mut_slice(),
-                                                              &mac,
-                                                              &ciphertext,
-                                                              &aad,
-                                                              &kb_sb[0..32],
-                                                              nonce) {
+            let success = match chacha20poly1305_aead_decrypt(
+                plaintext.as_mut_slice(),
+                &mac,
+                &ciphertext,
+                &aad,
+                &kb_sb[0..32],
+                nonce,
+            ) {
                 Ok(val) => val,
                 Err(msg) => panic!("Error! {}", msg),
             };
@@ -646,8 +689,10 @@ mod tests {
             // println!(">>>>  10. A computes the ed25519 signature: sig = signQa(Pae || Pbe)");
             let mut sig = vec![0; 64];
 
-            assert_eq!(ed25519_sign(sig.as_mut_slice(), q_a.as_slice(), pbe_pae.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                ed25519_sign(sig.as_mut_slice(), q_a.as_slice(), pbe_pae.as_slice()),
+                Ok(())
+            );
 
             // println!(">>>>  11. A computes and sends the message Ekey=Ka,IV=Sa||zero(sig)");
             let mut mac: Vec<u8> = vec![0; 16];
@@ -656,12 +701,14 @@ mod tests {
             let s_a = &ka_sa[32..64];
             let nonce = &s_a[0..12];
 
-            let success = match chacha20poly1305_aead_encrypt(ciphertext.as_mut_slice(),
-                                                              mac.as_mut_slice(),
-                                                              &sig,
-                                                              &aad,
-                                                              &ka_sa[0..32],
-                                                              nonce) {
+            let success = match chacha20poly1305_aead_encrypt(
+                ciphertext.as_mut_slice(),
+                mac.as_mut_slice(),
+                &sig,
+                &aad,
+                &ka_sa[0..32],
+                nonce,
+            ) {
                 Ok(val) => val,
                 Err(msg) => panic!("Error! {}", msg),
             };
@@ -688,8 +735,8 @@ mod tests {
 
         // assymetric public key
         let _p_b = vec![0x6c, 0x62, 0x58, 0xf3, 0x59, 0xb7, 0x94, 0xae, 0xa, 0xdf, 0xb2, 0x16,
-                       0x2b, 0xd6, 0x3e, 0x4a, 0xd9, 0xed, 0xd9, 0xaa, 0xd8, 0xdd, 0x4a, 0x4e,
-                       0xae, 0xe2, 0x96, 0x7f, 0x83, 0x72, 0xf4, 0x85];
+                        0x2b, 0xd6, 0x3e, 0x4a, 0xd9, 0xed, 0xd9, 0xaa, 0xd8, 0xdd, 0x4a, 0x4e,
+                        0xae, 0xe2, 0x96, 0x7f, 0x83, 0x72, 0xf4, 0x85];
 
         // A
         // assymetric public key
@@ -717,19 +764,19 @@ mod tests {
 
             // println!(">>>>  2. B generates ephemeral curve25519 key pair (Pbe, Qbe).");
             let mut p_be = vec![0; 32];
-            assert_eq!(curve25519_crypto_scalarmult(p_be.as_mut_slice(),
-                                                    q_be.as_slice(),
-                                                    &basepoint),
-                       Ok(()));
+            assert_eq!(
+                curve25519_crypto_scalarmult(p_be.as_mut_slice(), q_be.as_slice(), &basepoint),
+                Ok(())
+            );
 
             let p_ae = message1;
 
             // println!(">>>>  3. B computes the shared secret: z = scalar_multiplication(Qbe, Pae)");
             let mut z = vec![0; 32];
-            assert_eq!(curve25519_crypto_scalarmult(z.as_mut_slice(),
-                                                    q_be.as_slice(),
-                                                    &p_ae.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                curve25519_crypto_scalarmult(z.as_mut_slice(), q_be.as_slice(), &p_ae.as_slice()),
+                Ok(())
+            );
 
             // println!(">>>>  4. B uses the key derivation function kdf(z,1) to compute Kb || Sb, kdf(z,0) to
             // compute Ka || Sa, and kdf(z,2) to compute Kclient || Sclient.
@@ -740,30 +787,38 @@ mod tests {
             let mut ka_sa = vec![0; 64];
             let mut input = z.clone();
             input.push(0);
-            assert_eq!(sha2_512_hash(ka_sa.as_mut_slice(), input.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                sha2_512_hash(ka_sa.as_mut_slice(), input.as_slice()),
+                Ok(())
+            );
 
             // kdf(z,1) to compute Kb || Sb
             let mut kb_sb = vec![0; 64];
             let mut input = z.clone();
             input.push(1);
-            assert_eq!(sha2_512_hash(kb_sb.as_mut_slice(), input.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                sha2_512_hash(kb_sb.as_mut_slice(), input.as_slice()),
+                Ok(())
+            );
 
             // kdf(z,2) to compute Kclient || Sclient
             let mut kc_sc = vec![0; 64];
             let mut input = z.clone();
             input.push(2);
-            assert_eq!(sha2_512_hash(kc_sc.as_mut_slice(), input.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                sha2_512_hash(kc_sc.as_mut_slice(), input.as_slice()),
+                Ok(())
+            );
 
             // println!(">>>>  5. B computes the ed25519 signature: sig = signQb(Pbe || Pae)");
             let mut sig = vec![0; 64];
             let mut pbe_pae = p_be.clone();
             pbe_pae.append(&mut p_ae.clone());
 
-            assert_eq!(ed25519_sign(sig.as_mut_slice(), q_b.as_slice(), pbe_pae.as_slice()),
-                       Ok(()));
+            assert_eq!(
+                ed25519_sign(sig.as_mut_slice(), q_b.as_slice(), pbe_pae.as_slice()),
+                Ok(())
+            );
 
             // println!(">>>>  6. B computes and sends the message Pbe || Ekey=Kb,IV=Sb||zero(sig)");
             let mut mac: Vec<u8> = vec![0; 16];
@@ -772,12 +827,14 @@ mod tests {
             let s_b = &kb_sb[32..64];
             let nonce = &s_b[0..12];
 
-            let success = match chacha20poly1305_aead_encrypt(ciphertext.as_mut_slice(),
-                                                              mac.as_mut_slice(),
-                                                              &sig,
-                                                              &aad,
-                                                              &kb_sb[0..32],
-                                                              nonce) {
+            let success = match chacha20poly1305_aead_encrypt(
+                ciphertext.as_mut_slice(),
+                mac.as_mut_slice(),
+                &sig,
+                &aad,
+                &kb_sb[0..32],
+                nonce,
+            ) {
                 Ok(val) => val,
                 Err(msg) => panic!("Error! {}", msg),
             };
@@ -793,7 +850,7 @@ mod tests {
             _status = StatusB::WaitingForMEssage3;
             let message3 = rx.recv().expect(" Couldn't receive data");
 
-			// println!(">>>> 13. decrypts and verifies the signature encrypted with  Ekey=Ka,IV=Sa||zero(sig)");
+            // println!(">>>> 13. decrypts and verifies the signature encrypted with  Ekey=Ka,IV=Sa||zero(sig)");
             let mut plaintext = vec![0; 64];
             let aad = vec![];
             let mac = &message3[64..];
@@ -801,12 +858,14 @@ mod tests {
             let s_a = &ka_sa[32..64];
             let nonce = &s_a[0..12];
 
-            let success = match chacha20poly1305_aead_decrypt(plaintext.as_mut_slice(),
-                                                              &mac,
-                                                              &ciphertext,
-                                                              &aad,
-                                                              &ka_sa[0..32],
-                                                              nonce) {
+            let success = match chacha20poly1305_aead_decrypt(
+                plaintext.as_mut_slice(),
+                &mac,
+                &ciphertext,
+                &aad,
+                &ka_sa[0..32],
+                nonce,
+            ) {
                 Ok(val) => val,
                 Err(msg) => panic!("Error! {}", msg),
             };
