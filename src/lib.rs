@@ -426,8 +426,54 @@ mod tests {
     #[test]
     fn test_sha2_512_hash() {
         let mut hashed = vec![0; 64];
-
         assert_eq!(sha2_512_hash(hashed.as_mut_slice(), &KEY), Ok(()));
+    }
+    
+    #[test]
+    fn test_shared_secret() {
+    	// A generates an ephemeral (random) curve25519 key pair (Pae, Qae) and sends Pae.
+    	let q_ae = Q_A;
+    	let mut p_ae: [u8;32] = [0; 32];
+    	let mut basepoint: [u8; 32] = [0; 32];
+    	basepoint[0] = 9;
+    	assert_eq!(
+            curve25519_crypto_scalarmult(&mut p_ae, &q_ae, &basepoint),
+            Ok(())
+        );
+    	
+    	// B generates ephemeral curve25519 key pair (Pbe, Qbe).
+    	let q_be = Q_B;
+    	let mut p_be: [u8;32] = [0; 32];
+    	assert_eq!(
+            curve25519_crypto_scalarmult(&mut p_be, &q_be, &basepoint),
+            Ok(())
+        );
+    	
+    	// B computes the shared secret: z = scalar_multiplication(Qbe, Pae)
+    	let mut zb = vec![0; 32];
+        assert_eq!(
+            curve25519_crypto_scalarmult(
+                zb.as_mut_slice(),
+                &q_be,
+                &p_ae,
+            ),
+            Ok(())
+        );
+        println!(">>>>>>>> B shared secred = {:?}",zb);
+        
+        
+        // A computes the shared secret: z = scalar_multiplication(Qae, Pbe)
+    	let mut za = vec![0; 32];
+        assert_eq!(
+            curve25519_crypto_scalarmult(
+                za.as_mut_slice(),
+                &q_ae,
+                &p_be,
+            ),
+            Ok(())
+        );
+        println!(">>>>>>>> A shared secred = {:?}",za);
+        assert_eq!(za,zb);
     }
 
 
