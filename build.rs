@@ -6,7 +6,7 @@ fn main() {
 
   let out = Command::new("git")
         .arg("clone")
-        .arg("https://github.com/mitls/hacl-c.git")
+        .arg("https://github.com/paparazzi/hacl-c.git")
         .output()
         .expect("failed to execute process");
   println!("Rusthacl git: {:?}", out);
